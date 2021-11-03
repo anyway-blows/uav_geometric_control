@@ -89,10 +89,10 @@ void fdcl::control::position_control(void)
     // force 'f' along negative b3-axis - eq (14)
     // this term equals to R.e3
     Vector3 A = -kX * eX \
-        - kV * eV \
-        - kIX * eIX.error \
-        - m * g * e3 \
-        + m * command->xd_2dot;
+                - kV * eV \
+                - kIX * eIX.error \
+                - m * g * e3 \
+                + m * command->xd_2dot;
 
     Vector3 b3 = state->R * e3;
     Vector3 b3_dot = state->R * hat(state->W) * e3; // eq (22)
@@ -112,8 +112,8 @@ void fdcl::control::position_control(void)
     Vector3 A2 = -hat(command->b1d) * b3c;
     Vector3 A2_dot = -hat(command->b1d_dot) * b3c - hat(command->b1d) * b3c_dot;
     Vector3 A2_ddot = -hat(command->b1d_ddot) * b3c \
-        - 2.0 * hat(command->b1d_dot) * b3c_dot 
-        - hat(command->b1d) * b3c_ddot;
+                      - 2.0 * hat(command->b1d_dot) * b3c_dot 
+                      - hat(command->b1d) * b3c_ddot;
 
     Vector3 b2c, b2c_dot, b2c_ddot;
     deriv_unit_vector(A2, A2_dot, A2_ddot, b2c, b2c_dot, b2c_ddot);
@@ -121,8 +121,8 @@ void fdcl::control::position_control(void)
     Vector3 b1c = hat(b2c) * b3c;
     Vector3 b1c_dot = hat(b2c_dot) * b3c + hat(b2c) * b3c_dot;
     Vector3 b1c_ddot = hat(b2c_ddot) * b3c \
-        + 2.0 * hat(b2c_dot) * b3c_dot \
-        + hat(b2c) * b3c_ddot;
+                       + 2.0 * hat(b2c_dot) * b3c_dot \
+                       + hat(b2c) * b3c_ddot;
 
     Matrix3 Rddot, Rdddot;
 
@@ -132,7 +132,7 @@ void fdcl::control::position_control(void)
 
     command->Wd = vee(command->Rd.transpose() * Rddot);
     command->Wd_dot = vee(command->Rd.transpose() * Rdddot \
-        - hat(command->Wd) * hat(command->Wd));
+                      - hat(command->Wd) * hat(command->Wd));
 
     // roll / pitch
     command->b3d = b3c;
@@ -324,9 +324,9 @@ void fdcl::control::load_config(void)
 
     Eigen::Matrix<double, 4, 4> fM_to_forces;
     fM_to_forces << 1.0, 1.0, 1.0, 1.0,
-        0.0, -l, 0.0, l,
-        l, 0.0, -l, 0.0,
-        -c_tf, c_tf, -c_tf, c_tf;
+                    0.0, -l, 0.0, l,
+                    l, 0.0, -l, 0.0,
+                    -c_tf, c_tf, -c_tf, c_tf;
     fM_to_forces_inv = fM_to_forces.inverse();
 }
 
