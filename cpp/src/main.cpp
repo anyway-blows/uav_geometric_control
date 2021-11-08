@@ -41,7 +41,7 @@ int main(int argc, char **argv)
     std::cout << "Controller initialized" << std::endl;
 
     double f_out;
-    Vector3 M_out;
+    Eigen::Vector3d M_out;
 
     for (int i = 0; i < 10; i++)
     {

@@ -323,8 +323,8 @@ void fdcl::control::load_config(void)
 
     Eigen::Matrix4d fM_to_forces;
     fM_to_forces << 1.0, 1.0, 1.0, 1.0,
-                    0.0, -l, 0.0, l,
-                    l, 0.0, -l, 0.0,
+                    0.0,  -l, 0.0,   l,
+                    l,   0.0,  -l, 0.0,
                     -c_tf, c_tf, -c_tf, c_tf;
     fM_to_forces_inv = fM_to_forces.inverse();
 }
