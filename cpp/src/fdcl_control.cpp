@@ -88,43 +88,43 @@ void fdcl::control::position_control(void)
 
     // force 'f' along negative b3-axis - eq (14)
     // this term equals to R.e3
-    Vector3 A = -kX * eX \
+    Eigen::Vector3d A = -kX * eX \
                 - kV * eV \
                 - kIX * eIX.error \
                 - m * g * e3 \
                 + m * command->xd_2dot;
 
-    Vector3 b3 = state->R * e3;
-    Vector3 b3_dot = state->R * hat(state->W) * e3; // eq (22)
+    Eigen::Vector3d b3 = state->R * e3;
+    Eigen::Vector3d b3_dot = state->R * hat(state->W) * e3; // eq (22)
     f_total = -A.dot(b3);
 
     // intermediate terms for rotational errors
-    Vector3 ea = g * e3 - f_total / m * b3 - command->xd_2dot;
-    Vector3 A_dot = -kX * eV - kV * ea + m * command->xd_3dot;
+    Eigen::Vector3d ea = g * e3 - f_total / m * b3 - command->xd_2dot;
+    Eigen::Vector3d A_dot = -kX * eV - kV * ea + m * command->xd_3dot;
 
     double fdot = -A_dot.dot(b3) - A.dot(b3_dot);
-    Vector3 eb = -fdot / m * b3 - f_total / m * b3_dot - command->xd_3dot;
-    Vector3 A_ddot = -kX * ea - kV * eb + m * command->xd_4dot;
+    Eigen::Vector3d eb = -fdot / m * b3 - f_total / m * b3_dot - command->xd_3dot;
+    Eigen::Vector3d A_ddot = -kX * ea - kV * eb + m * command->xd_4dot;
 
-    Vector3 b3c, b3c_dot, b3c_ddot;
+    Eigen::Vector3d b3c, b3c_dot, b3c_ddot;
     deriv_unit_vector(-A, -A_dot, -A_ddot, b3c, b3c_dot, b3c_ddot);
 
-    Vector3 A2 = -hat(command->b1d) * b3c;
-    Vector3 A2_dot = -hat(command->b1d_dot) * b3c - hat(command->b1d) * b3c_dot;
-    Vector3 A2_ddot = -hat(command->b1d_ddot) * b3c \
+    Eigen::Vector3d A2 = -hat(command->b1d) * b3c;
+    Eigen::Vector3d A2_dot = -hat(command->b1d_dot) * b3c - hat(command->b1d) * b3c_dot;
+    Eigen::Vector3d A2_ddot = -hat(command->b1d_ddot) * b3c \
                       - 2.0 * hat(command->b1d_dot) * b3c_dot 
                       - hat(command->b1d) * b3c_ddot;
 
-    Vector3 b2c, b2c_dot, b2c_ddot;
+    Eigen::Vector3d b2c, b2c_dot, b2c_ddot;
     deriv_unit_vector(A2, A2_dot, A2_ddot, b2c, b2c_dot, b2c_ddot);
 
-    Vector3 b1c = hat(b2c) * b3c;
-    Vector3 b1c_dot = hat(b2c_dot) * b3c + hat(b2c) * b3c_dot;
-    Vector3 b1c_ddot = hat(b2c_ddot) * b3c \
+    Eigen::Vector3d b1c = hat(b2c) * b3c;
+    Eigen::Vector3d b1c_dot = hat(b2c_dot) * b3c + hat(b2c) * b3c_dot;
+    Eigen::Vector3d b1c_ddot = hat(b2c_ddot) * b3c \
                        + 2.0 * hat(b2c_dot) * b3c_dot \
                        + hat(b2c) * b3c_ddot;
 
-    Matrix3 Rddot, Rdddot;
+    Eigen::Matrix3d Rddot, Rdddot;
 
     command->Rd << b1c, b2c, b3c;
     Rddot << b1c_dot, b2c_dot, b3c_dot;
@@ -165,7 +165,7 @@ void fdcl::control::attitude_control(void)
     //  This uses the controller defined in "Control of Complex Maneuvers
     //  for a Quadrotor UAV using Geometric Methods on SE(3)"
     //  URL: https://arxiv.org/pdf/1003.2005.pdf
-    Matrix3 RdtR = command->Rd.transpose() * state->R;
+    Eigen::Matrix3d RdtR = command->Rd.transpose() * state->R;
     eR = 0.5 * vee(RdtR - RdtR.transpose());
     eW = state->W - state->R.transpose() * command->Rd * command->Wd;
 
@@ -180,7 +180,6 @@ void fdcl::control::attitude_control(void)
         + hat(state->R.transpose() * command->Rd * command->Wd) * J * \
             state->R.transpose() * command->Rd * command->Wd \
         + J * state->R.transpose() * command->Rd * command->Wd_dot;
-
 
     fM(0) = f_total;
     fM.block<3,1>(1,0) = M;
@@ -201,28 +200,28 @@ void fdcl::control::attitude_control_decoupled_yaw(void)
     double kwy = kW(2, 2);
 
     // roll/pitch angular velocity vector
-    Vector3 W_12 = state->W(0) * b1 + state->W(1) * b2;
+    Eigen::Vector3d W_12 = state->W(0) * b1 + state->W(1) * b2;
     b3_dot = hat(W_12) * b3; // eq (26)
 
-    Vector3 W_12d = hat(command->b3d) * command->b3d_dot;
-    Vector3 W_12d_dot = hat(command->b3d) * command->b3d_ddot;
+    Eigen::Vector3d W_12d = hat(command->b3d) * command->b3d_dot;
+    Eigen::Vector3d W_12d_dot = hat(command->b3d) * command->b3d_ddot;
 
-    Vector3 eb = hat(command->b3d) * b3;           // eq (27)
-    Vector3 ew = W_12 + hat(b3) * hat(b3) * W_12d; // eq (28)
+    Eigen::Vector3d eb = hat(command->b3d) * b3;           // eq (27)
+    Eigen::Vector3d ew = W_12 + hat(b3) * hat(b3) * W_12d; // eq (28)
 
     // yaw
     double ey = -b2.dot(command->b1c);
     double ewy = state->W(2) - command->wc3;
 
     // attitude integral terms
-    Vector3 eI = ew + c2 * eb;
+    Eigen::Vector3d eI = ew + c2 * eb;
 
     eI1.integrate(eI.dot(b1), dt); // b1 axis - eq (29)
     eI2.integrate(eI.dot(b2), dt); // b2 axis - eq (30)
     eIy.integrate(ewy + c3 * ey, dt);
 
     // control moment for the roll/pitch dynamics - eq (31)
-    Vector3 tau;
+    Eigen::Vector3d tau;
     tau = -kR(0, 0) * eb \
         - kW(0, 0) * ew \
         - J(0, 0) * b3.transpose() * W_12d * b3_dot \
@@ -252,14 +251,14 @@ void fdcl::control::attitude_control_decoupled_yaw(void)
     f_motor = fM_to_forces_inv * fM;
 
     // for saving:
-    Matrix3 RdtR = command->Rd.transpose() * state->R;
+    Eigen::Matrix3d RdtR = command->Rd.transpose() * state->R;
     eR = 0.5 * vee(RdtR - RdtR.transpose());
     eIR.error << eI1.error, eI2.error, eIy.error;
     eW = state->W - state->R.transpose() * command->Rd * command->Wd;
 }
 
 
-void fdcl::control::output_fM(double &f, Vector3 &M)
+void fdcl::control::output_fM(double &f, Eigen::Vector3d &M)
 {
     f = this->f_total;
     M = this->M;
@@ -283,7 +282,7 @@ void fdcl::control::load_config(void)
     config_file->read("integral.use_integral", use_integral);
     config_file->read("control.use_decoupled_yaw", use_decoupled_yaw);
 
-    Vector3 temp_3x1;
+    Eigen::Vector3d temp_3x1;
     config_file->read("control.kX", temp_3x1);
     kX(0, 0) = temp_3x1[0];
     kX(1, 1) = temp_3x1[1];
@@ -322,7 +321,7 @@ void fdcl::control::load_config(void)
     config_file->read("uav.m", m);
     config_file->read("uav.g", g);
 
-    Eigen::Matrix<double, 4, 4> fM_to_forces;
+    Eigen::Matrix4d fM_to_forces;
     fM_to_forces << 1.0, 1.0, 1.0, 1.0,
                     0.0, -l, 0.0, l,
                     l, 0.0, -l, 0.0,
@@ -331,7 +330,7 @@ void fdcl::control::load_config(void)
 }
 
 
-void fdcl::control::output_uav_properties(double &m, Matrix3 &J)
+void fdcl::control::output_uav_properties(double &m, Eigen::Matrix3d &J)
 {
     m = this->m;
     J = this->J;

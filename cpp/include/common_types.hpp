@@ -29,17 +29,8 @@
 #ifndef COMMON_TYPE_HPP
 #define COMMON_TYPE_HPP
 
-
-
 // external libraries
 #include "Eigen/Dense"
-
-
-// common eigen matrix definition used throughout the code
-typedef Eigen::Matrix<double, 2, 1> Vector2;
-typedef Eigen::Matrix<double, 3, 1> Vector3;
-typedef Eigen::Matrix<double, 4, 1> Vector4;
-typedef Eigen::Matrix<double, 3, 3> Matrix3;
 
 namespace fdcl
 {
@@ -48,11 +39,11 @@ namespace fdcl
  */
 struct state_t
 {
-    Vector3 x = Vector3::Zero(); /**< Position */
-    Vector3 v = Vector3::Zero(); /**< Velocity */
-    Vector3 a = Vector3::Zero(); /**< Acceleration */
-    Matrix3 R = Matrix3::Identity(); /**< Attitude in SO(3) */
-    Vector3 W = Vector3::Zero(); /**< Body angular velocity */
+    Eigen::Vector3d x = Eigen::Vector3d::Zero(); /**< Position */
+    Eigen::Vector3d v = Eigen::Vector3d::Zero(); /**< Velocity */
+    Eigen::Vector3d a = Eigen::Vector3d::Zero(); /**< Acceleration */
+    Eigen::Matrix3d R = Eigen::Matrix3d::Identity(); /**< Attitude in SO(3) */
+    Eigen::Vector3d W = Eigen::Vector3d::Zero(); /**< Body angular velocity */
 };
 
 
@@ -61,28 +52,28 @@ struct state_t
 class command_t
 {
 public:
-    Vector3 Wd = Vector3::Zero();
-    Vector3 Wd_dot = Vector3::Zero();
-    Vector3 Wd_2dot = Vector3::Zero();
-    Matrix3 Rd = Matrix3::Identity();
-    Vector3 xd = Vector3::Zero();
-    Vector3 xd_dot = Vector3::Zero();
-    Vector3 xd_2dot = Vector3::Zero();
-    Vector3 xd_3dot = Vector3::Zero();
-    Vector3 xd_4dot = Vector3::Zero();
-    Vector3 b1d = Vector3::Zero();
-    Vector3 b1d_dot = Vector3::Zero();
-    Vector3 b1d_ddot = Vector3::Zero();
-    Vector3 b3d = Vector3::Zero();
-    Vector3 b3d_dot = Vector3::Zero();
-    Vector3 b3d_ddot = Vector3::Zero();
-    Vector3 b1c = Vector3::Zero();
+    Eigen::Vector3d Wd = Eigen::Vector3d::Zero();
+    Eigen::Vector3d Wd_dot = Eigen::Vector3d::Zero();
+    Eigen::Vector3d Wd_2dot = Eigen::Vector3d::Zero();
+    Eigen::Matrix3d Rd = Eigen::Matrix3d::Identity();
+    Eigen::Vector3d xd = Eigen::Vector3d::Zero();
+    Eigen::Vector3d xd_dot = Eigen::Vector3d::Zero();
+    Eigen::Vector3d xd_2dot = Eigen::Vector3d::Zero();
+    Eigen::Vector3d xd_3dot = Eigen::Vector3d::Zero();
+    Eigen::Vector3d xd_4dot = Eigen::Vector3d::Zero();
+    Eigen::Vector3d b1d = Eigen::Vector3d::Zero();
+    Eigen::Vector3d b1d_dot = Eigen::Vector3d::Zero();
+    Eigen::Vector3d b1d_ddot = Eigen::Vector3d::Zero();
+    Eigen::Vector3d b3d = Eigen::Vector3d::Zero();
+    Eigen::Vector3d b3d_dot = Eigen::Vector3d::Zero();
+    Eigen::Vector3d b3d_ddot = Eigen::Vector3d::Zero();
+    Eigen::Vector3d b1c = Eigen::Vector3d::Zero();
     double wc3 = 0.0;
     double wc3_dot = 0.0;
 
-    Vector3 b1 = Vector3::Zero();
-    Vector3 b2 = Vector3::Zero();
-    Vector3 b3 = Vector3::Zero();
+    Eigen::Vector3d b1 = Eigen::Vector3d::Zero();
+    Eigen::Vector3d b2 = Eigen::Vector3d::Zero();
+    Eigen::Vector3d b3 = Eigen::Vector3d::Zero();
 };
 
 }  // end of namespace fdcl

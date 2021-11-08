@@ -1,6 +1,6 @@
 
 # Created by https://www.gitignore.io/api/osx,c++,macos,linux,python,matlab
-
+.vscode
 ### C++ ###
 # Prerequisites
 *.d

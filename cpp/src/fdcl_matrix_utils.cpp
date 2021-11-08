@@ -23,9 +23,9 @@
 #include "fdcl/matrix_utils.hpp"
 
 
-Matrix3 hat(const Vector3 v)
+Eigen::Matrix3d hat(const Eigen::Vector3d v)
 {
-    Matrix3 V;
+    Eigen::Matrix3d V;
     V.setZero();
 
     V(2,1) = v(0);
@@ -39,21 +39,21 @@ Matrix3 hat(const Vector3 v)
 }
 
 
-Vector3 vee(const Matrix3 V)
+Eigen::Vector3d vee(const Eigen::Matrix3d V)
 {
     // improve code by: https://codereview.stackexchange.com/questions/77546/multiply-vector-elements-by-a-scalar-value-using-stl-and-templates
-    Matrix3 E = V + V.transpose();
+    Eigen::Matrix3d E = V + V.transpose();
     
     if(E.norm() > 1.e-6)
     {
         std::cout << "VEE: E.norm() = " << E.norm() << std::endl;
     }
-
-    return  Vector3(V(2, 1), V(0, 2), V(1, 0));
+    Eigen::Vector3d v(V(2, 1), V(0, 2), V(1, 0));
+    return v;
 }
 
 
-void saturate(Vector3 &x, const double x_min, const double x_max)
+void saturate(Eigen::Vector3d &x, const double x_min, const double x_max)
 {
     for (int i = 0; i < 3; i++)
     {
@@ -64,8 +64,8 @@ void saturate(Vector3 &x, const double x_min, const double x_max)
 
 
 void deriv_unit_vector( \
-    const Vector3 &A, const Vector3 &A_dot, const Vector3 &A_ddot, \
-    Vector3 &q, Vector3 &q_dot, Vector3 &q_ddot
+    const Eigen::Vector3d &A, const Eigen::Vector3d &A_dot, const Eigen::Vector3d &A_ddot, \
+    Eigen::Vector3d &q, Eigen::Vector3d &q_dot, Eigen::Vector3d &q_ddot
 )
 {
     double nA = A.norm();

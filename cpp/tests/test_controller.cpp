@@ -39,12 +39,12 @@ TEST(TestControl, Initialize)
     fdcl::control controller(state, command, config_file);
 
     double m = 0;
-    Matrix3 J = Matrix3::Identity();
+    Eigen::Matrix3d J = Eigen::Matrix3d::Identity();
     controller.output_uav_properties(m, J);
 
     ASSERT_FLOAT_EQ(m, 1.95);
 
-    Matrix3 J_cfg;
+    Eigen::Matrix3d J_cfg;
     J_cfg << 0.02, 0.0, 0.0, 0.0, 0.02, 0.0, 0.0, 0.0, 0.04;
     ASSERT_TRUE(J.isApprox(J_cfg));
 
@@ -69,7 +69,7 @@ TEST(TestControl, DecoupledZeroInitConditions)
     config_file->open("../tests/test_decoupled.cfg");
 
     double f, f_out;
-    Vector3 M, M_out;
+    Eigen::Vector3d M, M_out;
 
     fdcl::control controller(state, command, config_file);
 
@@ -118,7 +118,7 @@ TEST(TestControl, DecoupledNonZeroInitConditions)
     config_file->open("../tests/test_decoupled.cfg");
 
     double f, f_out;
-    Vector3 M, M_out;
+    Eigen::Vector3d M, M_out;
 
     fdcl::control controller(state, command, config_file);
 
@@ -169,7 +169,7 @@ TEST(TestControl, ZeroInitConditions)
     config_file->open("../tests/test.cfg");
 
     double f, f_out;
-    Vector3 M, M_out;
+    Eigen::Vector3d M, M_out;
 
     fdcl::control controller(state, command, config_file);
 
@@ -218,7 +218,7 @@ TEST(TestControl, NonZeroInitConditions)
     config_file->open("../tests/test.cfg");
 
     double f, f_out;
-    Vector3 M, M_out;
+    Eigen::Vector3d M, M_out;
 
     fdcl::control controller(state, command, config_file);
 

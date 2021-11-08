@@ -39,12 +39,12 @@
 namespace fdcl
 {
 
-/** \brief Integral for error for Vector3
+/** \brief Integral for error for Eigen::Vector3d
  */
 struct integral_error_vec3
 {
-    Vector3 error;
-    Vector3 integrand;
+    Eigen::Vector3d error;
+    Eigen::Vector3d integrand;
 
     integral_error_vec3(void)
     {
@@ -52,14 +52,14 @@ struct integral_error_vec3
     }
 
 
-    /** \fn void integrate(const Vector3 current_integrand, const double dt)
+    /** \fn void integrate(const Eigen::Vector3d current_integrand, const double dt)
      * 
      * Integration of errors for a 3x1 state.
      * 
      * @param current_integrand the value of the integrand right now
      * @param dt time step
      */
-    void integrate(const Vector3 current_integrand, const double dt)
+    void integrate(const Eigen::Vector3d current_integrand, const double dt)
     {
         error += (integrand + current_integrand) * dt / 2;
         integrand = current_integrand;

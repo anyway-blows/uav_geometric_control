@@ -27,8 +27,8 @@
 
 TEST(TestHatAndVeeMap, HatMapZero)
 {
-    Vector3 x(Vector3::Random()), y(Vector3::Random());
-    Matrix3 xhat;
+    Eigen::Vector3d x(Eigen::Vector3d::Random()), y(Eigen::Vector3d::Random());
+    Eigen::Matrix3d xhat;
     xhat = hat(x);
     ASSERT_LT((xhat * x).norm(), 1.0e-6);
 }
@@ -36,8 +36,8 @@ TEST(TestHatAndVeeMap, HatMapZero)
 
 TEST(TestHatAndVeeMap, HatMapSkewSymmetric)
 {
-    Vector3 x(Vector3::Random()), y(Vector3::Random());
-    Matrix3 xhat;
+    Eigen::Vector3d x(Eigen::Vector3d::Random()), y(Eigen::Vector3d::Random());
+    Eigen::Matrix3d xhat;
     xhat = hat(x);
     ASSERT_TRUE(xhat.transpose().isApprox(-xhat));
 }
@@ -45,9 +45,9 @@ TEST(TestHatAndVeeMap, HatMapSkewSymmetric)
 
 TEST(TestHatAndVeeMap, HatMapInverseIsVeeMap)
 {
-    Vector3 x(Vector3::Random());
-    Vector3 xvee;
-    Matrix3 xhat;
+    Eigen::Vector3d x(Eigen::Vector3d::Random());
+    Eigen::Vector3d xvee;
+    Eigen::Matrix3d xhat;
 
     xhat = hat(x);
     xvee = vee(xhat);
@@ -58,8 +58,8 @@ TEST(TestHatAndVeeMap, HatMapInverseIsVeeMap)
 
 TEST(TestHatAndVeeMap, HatMapCrossProduct)
 {
-    Vector3 x(Vector3::Random()), y(Vector3::Random());
-    Matrix3 xhat, yhat;
+    Eigen::Vector3d x(Eigen::Vector3d::Random()), y(Eigen::Vector3d::Random());
+    Eigen::Matrix3d xhat, yhat;
     xhat = hat(x);
     yhat = hat(y);
     ASSERT_TRUE((xhat * y).isApprox(x.cross(y)));
@@ -69,12 +69,12 @@ TEST(TestHatAndVeeMap, HatMapCrossProduct)
 
 TEST(TestSaturate, SaturateLower)
 {
-    Vector3 x(-2.5, -3.0, -4.0);
+    Eigen::Vector3d x(-2.5, -3.0, -4.0);
 
     double min_x = -2.0;
     double max_x = 2.0;
 
-    Vector3 sat_x(min_x, min_x, min_x);
+    Eigen::Vector3d sat_x(min_x, min_x, min_x);
     
     saturate(x, min_x, max_x);
 
@@ -84,12 +84,12 @@ TEST(TestSaturate, SaturateLower)
 
 TEST(TestSaturate, SaturateUpper)
 {
-    Vector3 x(2.5, 3.0, 4.0);
+    Eigen::Vector3d x(2.5, 3.0, 4.0);
 
     double min_x = -2.0;
     double max_x = 2.0;
 
-    Vector3 sat_x(max_x, max_x, max_x);
+    Eigen::Vector3d sat_x(max_x, max_x, max_x);
 
     saturate(x, min_x, max_x);
 
@@ -99,12 +99,12 @@ TEST(TestSaturate, SaturateUpper)
 
 TEST(TestSaturate, SaturateMid)
 {
-    Vector3 x(-1.5, 0.0, 1.9);
+    Eigen::Vector3d x(-1.5, 0.0, 1.9);
 
     double min_x = -2.0;
     double max_x = 2.0;
 
-    Vector3 sat_x(x(0), x(1), x(2));
+    Eigen::Vector3d sat_x(x(0), x(1), x(2));
 
     saturate(x, min_x, max_x);
 
