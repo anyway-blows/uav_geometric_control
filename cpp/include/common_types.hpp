@@ -52,19 +52,19 @@ struct state_t
 class command_t
 {
 public:
-    Eigen::Vector3d Wd = Eigen::Vector3d::Zero();
+    Eigen::Vector3d Wd = Eigen::Vector3d::Zero(); /**< desired angular velocity*/
     Eigen::Vector3d Wd_dot = Eigen::Vector3d::Zero();
     Eigen::Vector3d Wd_2dot = Eigen::Vector3d::Zero();
     Eigen::Matrix3d Rd = Eigen::Matrix3d::Identity();
-    Eigen::Vector3d xd = Eigen::Vector3d::Zero();
-    Eigen::Vector3d xd_dot = Eigen::Vector3d::Zero();
-    Eigen::Vector3d xd_2dot = Eigen::Vector3d::Zero();
-    Eigen::Vector3d xd_3dot = Eigen::Vector3d::Zero();
-    Eigen::Vector3d xd_4dot = Eigen::Vector3d::Zero();
-    Eigen::Vector3d b1d = Eigen::Vector3d::Zero();
+    Eigen::Vector3d xd = Eigen::Vector3d::Zero(); /**< desired position, aka. position coordinates*/
+    Eigen::Vector3d xd_dot = Eigen::Vector3d::Zero(); /**< desired position 1 order derivatives, aka. velocity*/
+    Eigen::Vector3d xd_2dot = Eigen::Vector3d::Zero(); /**< desired position 2 order derivatives, aka. acceleration*/
+    Eigen::Vector3d xd_3dot = Eigen::Vector3d::Zero(); /**< desired position 3 order derivatives, aka. jerk*/
+    Eigen::Vector3d xd_4dot = Eigen::Vector3d::Zero(); /**< desired position 4 order derivatives, aka. snap*/
+    Eigen::Vector3d b1d = Eigen::Vector3d::Zero(); /**< desired b1 heading*/
     Eigen::Vector3d b1d_dot = Eigen::Vector3d::Zero();
     Eigen::Vector3d b1d_ddot = Eigen::Vector3d::Zero();
-    Eigen::Vector3d b3d = Eigen::Vector3d::Zero();
+    Eigen::Vector3d b3d = Eigen::Vector3d::Zero(); /**< desired b3 heading*/
     Eigen::Vector3d b3d_dot = Eigen::Vector3d::Zero();
     Eigen::Vector3d b3d_ddot = Eigen::Vector3d::Zero();
     Eigen::Vector3d b1c = Eigen::Vector3d::Zero();

@@ -13,7 +13,7 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO eVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
@@ -68,6 +68,8 @@ void fdcl::control::init(void)
 
 void fdcl::control::position_control(void)
 {
+    // Position controller as proposed in "Geometric Controls of a Quadrotor
+    // with a Decoupled Yaw control"
     // translational error functions
     eX = state->x - command->xd;     // position error - eq (11)
     eV = state->v - command->xd_dot; // velocity error - eq (12)
@@ -262,6 +264,68 @@ void fdcl::control::output_fM(double &f, Eigen::Vector3d &M)
 {
     f = this->f_total;
     M = this->M;
+}
+
+
+void fdcl::control::geometric_track_control(double &f_out, Eigen::Vector3d &M_out)
+{   
+    // T. Lee, M. Leok and N. H. McClamroch, 
+    // "Geometric tracking control of a quadrotor UAV on SE(3)," 
+    // 49th IEEE Conference on Decision and Control (CDC), Atlanta, GA, 2010, 
+    // pp. 5420-5425, doi: 10.1109/CDC.2010.5717652.
+
+    eX = state->x - command->xd;
+    eV = state->v - command->xd_dot;
+
+    Eigen::Vector3d ea = state->a - command->xd_2dot;
+    Eigen::Vector3d ej = Eigen::Vector3d(0.0, 0.0, 0.0) - command->xd_3dot;
+    Eigen::Vector3d e3(0.0, 0.0, 1.0);
+    Eigen::Vector3d A = -kX * eX - kV * eV - m * g * e3 + m * command->xd_2dot;
+
+    double f = -A.dot(state->R * e3);
+    double nA = A.norm();
+
+    Eigen::Vector3d b3c = -A / nA;
+    Eigen::Vector3d C = b3c.cross(command->b1d);
+    Eigen::Vector3d b1c = -(1 / C.norm()) * b3c.cross(C);
+    Eigen::Vector3d b2c = C / C.norm();
+    Eigen::Matrix3d Rc;
+    Rc << b1c, b2c, b3c;
+
+    double nC = C.norm();
+
+    Eigen::Vector3d A_1dot = -kX * eV - kV * ea + m * command->xd_3dot;
+    Eigen::Vector3d b3c_1dot = -A_1dot / nA + (A.dot(A_1dot) / pow(nA, 3)) * A;
+
+    Eigen::Vector3d C_1dot = b3c_1dot.cross(command->b1d) + b3c.cross(command->b1d_dot);
+    Eigen::Vector3d b2c_1dot = C / nC - C.dot(C_1dot) / (pow(nC, 3))*C;
+    Eigen::Vector3d b1c_1dot = b2c_1dot.cross(b3c) + b2c.cross(b3c_1dot);
+
+    Eigen::Vector3d A_2dot = -kX * ea -kV * ej + m * command->xd_4dot;
+    Eigen::Vector3d b3c_2dot = -A_2dot / nA + (2.0 / pow(nA, 3)) * A.dot(A_1dot) * A_1dot +
+            (pow(A_1dot.norm(), 2) + A.dot(A_2dot) / (pow(nA, 3))) * A - (3.0 / pow(nA, 5)) * (pow(A.dot(A_1dot), 2)) * A;
+    
+    Eigen::Vector3d C_2dot = b3c_2dot.cross(command->b1d) + (b3c.cross(command->b1d_2dot)) + 2 * b3c_1dot.cross(command->b1d_dot);
+
+    Eigen::Vector3d b2c_2dot = C_2dot/nC - 2.0 / (pow(nC, 3)) * C.dot(C_1dot) * C_1dot - (((pow(C_2dot.norm(), 2) + C.dot(C_2dot))) / pow(nC, 3)) * C
+                    + (3.0 / pow(nC, 5)) * (pow(C.dot(C_1dot), 2)) * C;
+    
+    Eigen::Vector3d b1c_2dot = b2c_2dot.cross(b3c) + b2c.cross(b3c_2dot) + 2.0 * b2c_1dot.cross(b3c_1dot);
+    Eigen::Matrix3d Rc_1dot, Rc_2dot;
+    Rc_1dot << b1c_1dot, b2c_1dot, b3c_1dot;
+    Rc_2dot << b1c_2dot, b2c_2dot, b3c_2dot;
+
+    Eigen::Vector3d omegac = vee(Rc.transpose() * Rc_1dot);
+    Eigen::Vector3d omegac_1dot = vee(Rc.transpose() * Rc_2dot - hat(omegac) * hat(omegac));
+
+    Eigen::Vector3d er = 2.0 * vee(Rc.transpose() * state->R - state->R.transpose() * Rc);
+    Eigen::Vector3d eomega = state->W - state->R.transpose() * Rc * omegac;
+
+    Eigen::Vector3d M = -kR * er - kW * eomega + state->W.cross(J * state->W) - J * (hat(state->W) * state->R.transpose() * Rc * omegac - state->R.transpose() * Rc * omegac_1dot);
+
+    // control_out
+    f_out = f;
+    M_out = M;
 }
 
 

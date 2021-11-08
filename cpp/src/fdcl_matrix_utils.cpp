@@ -63,9 +63,13 @@ void saturate(Eigen::Vector3d &x, const double x_min, const double x_max)
 }
 
 
-void deriv_unit_vector( \
-    const Eigen::Vector3d &A, const Eigen::Vector3d &A_dot, const Eigen::Vector3d &A_ddot, \
-    Eigen::Vector3d &q, Eigen::Vector3d &q_dot, Eigen::Vector3d &q_ddot
+void deriv_unit_vector(
+    const Eigen::Vector3d &A,
+    const Eigen::Vector3d &A_dot,
+    const Eigen::Vector3d &A_ddot,
+    Eigen::Vector3d &q,
+    Eigen::Vector3d &q_dot,
+    Eigen::Vector3d &q_ddot
 )
 {
     double nA = A.norm();

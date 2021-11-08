@@ -47,6 +47,11 @@ namespace fdcl
  * All controller related functions for the rover are included in this
  * class. This inlcudes two attitude controllers, a geometric controller and
  * a decoupled-yaw controller (ACC-2019) with a geometric position controller.
+ * 
+ * usage:
+ * 1) postion control -> attitude control(choose one from geometric controller and decoupled-yaw control) 
+ * and then get the control physical variables: F and M.
+ * 2) geometric_track_control. get the contril variables: F_out AND M_out.
  */
 class control
 {
@@ -156,6 +161,12 @@ public:
      */
     void output_fM(double &f, Eigen::Vector3d &M);
 
+    /** \fn void geometric_track_control(double &f_out, Eigen::Vector3d &M_out)
+     * use geometric tracking control
+     * @param f_out
+     * @param M_out
+     */
+    void geometric_track_control(double &f_out, Eigen::Vector3d &M_out);
 
 private:
     fdcl::state_t *state = nullptr; /**< Pointer to the current states */
