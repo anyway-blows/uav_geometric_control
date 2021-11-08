@@ -144,7 +144,7 @@ void fdcl::control::position_control(void)
     // yaw
     command->b1c = b1c;
     command->wc3 = e3.dot(state->R.transpose() * command->Rd * command->Wd);
-    command->wc3_dot = (e3).dot(state->R.transpose() * command->Rd \
+    command->wc3_dot = e3.dot(state->R.transpose() * command->Rd \
         * command->Wd_dot) \
         - e3.dot(hat(state->W) * state->R.transpose() \
         * command->Rd * command->Wd);
@@ -244,7 +244,9 @@ void fdcl::control::attitude_control_decoupled_yaw(void)
     // control moment around b3 axis - yaw - eq (52)
     M3 = -ky * ey - kwy * ewy + J(2, 2) * command->wc3_dot;
     if (use_integral)
+    {
         M3 += -kyI * eIy.error;
+    }
 
     M << M1, M2, M3;
 
@@ -277,8 +279,6 @@ void fdcl::control::geometric_track_control(double &f_out, Eigen::Vector3d &M_ou
     eX = state->x - command->xd;
     eV = state->v - command->xd_dot;
 
-    Eigen::Vector3d ea = state->a - command->xd_2dot;
-    Eigen::Vector3d ej = Eigen::Vector3d(0.0, 0.0, 0.0) - command->xd_3dot;
     Eigen::Vector3d e3(0.0, 0.0, 1.0);
     Eigen::Vector3d A = -kX * eX - kV * eV - m * g * e3 + m * command->xd_2dot;
 
@@ -293,15 +293,22 @@ void fdcl::control::geometric_track_control(double &f_out, Eigen::Vector3d &M_ou
     Rc << b1c, b2c, b3c;
 
     double nC = C.norm();
+    Eigen::Vector3d b3 = state->R * e3;
+    // Eigen::Vector3d eA = state->a - command->xd_2dot;
+    Eigen::Vector3d eA = g * e3 - f / m * b3 - command->xd_2dot;
 
-    Eigen::Vector3d A_1dot = -kX * eV - kV * ea + m * command->xd_3dot;
+    Eigen::Vector3d A_1dot = -kX * eV - kV * eA + m * command->xd_3dot;
     Eigen::Vector3d b3c_1dot = -A_1dot / nA + (A.dot(A_1dot) / pow(nA, 3)) * A;
 
     Eigen::Vector3d C_1dot = b3c_1dot.cross(command->b1d) + b3c.cross(command->b1d_dot);
     Eigen::Vector3d b2c_1dot = C / nC - C.dot(C_1dot) / (pow(nC, 3))*C;
     Eigen::Vector3d b1c_1dot = b2c_1dot.cross(b3c) + b2c.cross(b3c_1dot);
 
-    Eigen::Vector3d A_2dot = -kX * ea -kV * ej + m * command->xd_4dot;
+    Eigen::Vector3d b3_dot = state->R * hat(state->W) * e3;
+    double fdot = -A_1dot.dot(b3) - A.dot(b3_dot);
+    Eigen::Vector3d ej = -fdot / m * b3 - f / m * b3_dot - command->xd_3dot;
+
+    Eigen::Vector3d A_2dot = -kX * eA - kV * ej + m * command->xd_4dot;
     Eigen::Vector3d b3c_2dot = -A_2dot / nA + (2.0 / pow(nA, 3)) * A.dot(A_1dot) * A_1dot +
             (pow(A_1dot.norm(), 2) + A.dot(A_2dot) / (pow(nA, 3))) * A - (3.0 / pow(nA, 5)) * (pow(A.dot(A_1dot), 2)) * A;
     
@@ -318,10 +325,10 @@ void fdcl::control::geometric_track_control(double &f_out, Eigen::Vector3d &M_ou
     Eigen::Vector3d omegac = vee(Rc.transpose() * Rc_1dot);
     Eigen::Vector3d omegac_1dot = vee(Rc.transpose() * Rc_2dot - hat(omegac) * hat(omegac));
 
-    Eigen::Vector3d er = 2.0 * vee(Rc.transpose() * state->R - state->R.transpose() * Rc);
-    Eigen::Vector3d eomega = state->W - state->R.transpose() * Rc * omegac;
+    Eigen::Vector3d eR = 0.5 * vee(Rc.transpose() * state->R - state->R.transpose() * Rc);
+    Eigen::Vector3d eW = state->W - state->R.transpose() * Rc * omegac;
 
-    Eigen::Vector3d M = -kR * er - kW * eomega + state->W.cross(J * state->W) - J * (hat(state->W) * state->R.transpose() * Rc * omegac - state->R.transpose() * Rc * omegac_1dot);
+    Eigen::Vector3d M = -kR * eR - kW * eW + state->W.cross(J * state->W) - J * (hat(state->W) * state->R.transpose() * Rc * omegac - state->R.transpose() * Rc * omegac_1dot);
 
     // control_out
     f_out = f;
