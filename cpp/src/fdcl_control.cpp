@@ -341,7 +341,8 @@ void fdcl::control::geometric_track_control(void)
     eR = 0.5 * vee(Rc.transpose() * state->R - state->R.transpose() * Rc);
     eW = state->W - state->R.transpose() * Rc * Wc;
 
-    M = -kR * eR - kW * eW + state->W.cross(J * state->W) - 
+    M = -kR * eR - kW * eW + 
+        state->W.cross(J * state->W) - 
         J * (hat(state->W) * state->R.transpose() * Rc * Wc - state->R.transpose() * Rc * Wc_1dot);
 
     // for save
