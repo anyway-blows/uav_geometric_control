@@ -269,7 +269,13 @@ void fdcl::control::output_fM(double &f, Eigen::Vector3d &M)
 }
 
 
-void fdcl::control::geometric_track_control(double &f_out, Eigen::Vector3d &M_out)
+void fdcl::control::output_orientation(Eigen::Orientationd &orientation)
+{
+    orientation = this->orientation;
+}
+
+
+void fdcl::control::geometric_track_control(void)
 {   
     // T. Lee, M. Leok and N. H. McClamroch, 
     // "Geometric tracking control of a quadrotor UAV on SE(3)," 
@@ -301,7 +307,7 @@ void fdcl::control::geometric_track_control(double &f_out, Eigen::Vector3d &M_ou
     Eigen::Vector3d b3c_1dot = -A_1dot / nA + (A.dot(A_1dot) / pow(nA, 3)) * A;
 
     Eigen::Vector3d C_1dot = b3c_1dot.cross(command->b1d) + b3c.cross(command->b1d_dot);
-    Eigen::Vector3d b2c_1dot = C / nC - C.dot(C_1dot) / (pow(nC, 3))*C;
+    Eigen::Vector3d b2c_1dot = C / nC - C.dot(C_1dot) / (pow(nC, 3)) * C;
     Eigen::Vector3d b1c_1dot = b2c_1dot.cross(b3c) + b2c.cross(b3c_1dot);
 
     Eigen::Vector3d b3_dot = state->R * hat(state->W) * e3;
@@ -325,14 +331,21 @@ void fdcl::control::geometric_track_control(double &f_out, Eigen::Vector3d &M_ou
     Eigen::Vector3d omegac = vee(Rc.transpose() * Rc_1dot);
     Eigen::Vector3d omegac_1dot = vee(Rc.transpose() * Rc_2dot - hat(omegac) * hat(omegac));
 
-    Eigen::Vector3d eR = 0.5 * vee(Rc.transpose() * state->R - state->R.transpose() * Rc);
-    Eigen::Vector3d eW = state->W - state->R.transpose() * Rc * omegac;
+    eR = 0.5 * vee(Rc.transpose() * state->R - state->R.transpose() * Rc);
+    eW = state->W - state->R.transpose() * Rc * omegac;
 
-    Eigen::Vector3d M = -kR * eR - kW * eW + state->W.cross(J * state->W) - J * (hat(state->W) * state->R.transpose() * Rc * omegac - state->R.transpose() * Rc * omegac_1dot);
+    Eigen::Vector3d Mt = -kR * eR - kW * eW + state->W.cross(J * state->W) - 
+                        J * (hat(state->W) * state->R.transpose() * Rc * omegac - state->R.transpose() * Rc * omegac_1dot);
 
     // control_out
-    f_out = f;
-    M_out = M;
+    f_total = f;
+    M = Mt;
+    orientation = Eigen::Quaterniond(Rc);
+
+    // for save
+    fM(0) = f_total;
+    fM.block<3,1>(1,0) = M;
+    f_motor = fM_to_forces_inv * fM;
 }
 
 

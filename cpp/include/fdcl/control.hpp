@@ -37,6 +37,7 @@
 
 // external headers
 #include "Eigen/Dense"
+#include "Eigen/Geometry"
 
 
 namespace fdcl
@@ -82,6 +83,7 @@ public:
     Eigen::Vector3d b2 = Eigen::Vector3d::Zero(); /**< Direction of the second body axis */
     Eigen::Vector3d b3 = Eigen::Vector3d::Zero(); /**< Direction of the third body axis */
     Eigen::Vector3d b3_dot = Eigen::Vector3d::Zero(); /**< Desired rate of change of b3 axis */
+    Eigen::Quaterniond orientation{0., 0., 0., 0.}; /**< computed orientation*/
 
     Eigen::Matrix4d fM_to_forces_inv; /**< Force to force-moment
         * conversion matrix
@@ -161,12 +163,20 @@ public:
      */
     void output_fM(double &f, Eigen::Vector3d &M);
 
-    /** \fn void geometric_track_control(double &f_out, Eigen::Vector3d &M_out)
+
+    /** \fn void geometric_track_control(void)
      * use geometric tracking control
      * @param f_out
      * @param M_out
      */
-    void geometric_track_control(double &f_out, Eigen::Vector3d &M_out);
+    void geometric_track_control();
+
+    /**
+     * \fn void output_orientation(Eigen::Orientationd &orientation)
+     * Outputs the attitude orientation
+     * @param orientation 
+     */
+    void output_orientation(Eigen::Orientationd &orientation);
 
 private:
     fdcl::state_t *state = nullptr; /**< Pointer to the current states */
