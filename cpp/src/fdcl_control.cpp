@@ -288,64 +288,70 @@ void fdcl::control::geometric_track_control(void)
     Eigen::Vector3d e3(0.0, 0.0, 1.0);
     Eigen::Vector3d A = -kX * eX - kV * eV - m * g * e3 + m * command->xd_2dot;
 
-    double f = -A.dot(state->R * e3);
-    double nA = A.norm();
-
-    Eigen::Vector3d b3c = -A / nA;
-    Eigen::Vector3d C = b3c.cross(command->b1d);
-    Eigen::Vector3d b1c = -(1 / C.norm()) * b3c.cross(C);
-    Eigen::Vector3d b2c = C / C.norm();
-    Eigen::Matrix3d Rc;
-    Rc << b1c, b2c, b3c;
-
-    double nC = C.norm();
     Eigen::Vector3d b3 = state->R * e3;
-    // Eigen::Vector3d eA = state->a - command->xd_2dot;
-    Eigen::Vector3d eA = g * e3 - f / m * b3 - command->xd_2dot;
-
-    Eigen::Vector3d A_1dot = -kX * eV - kV * eA + m * command->xd_3dot;
-    Eigen::Vector3d b3c_1dot = -A_1dot / nA + (A.dot(A_1dot) / pow(nA, 3)) * A;
-
-    Eigen::Vector3d C_1dot = b3c_1dot.cross(command->b1d) + b3c.cross(command->b1d_dot);
-    Eigen::Vector3d b2c_1dot = C / nC - C.dot(C_1dot) / (pow(nC, 3)) * C;
-    Eigen::Vector3d b1c_1dot = b2c_1dot.cross(b3c) + b2c.cross(b3c_1dot);
-
     Eigen::Vector3d b3_dot = state->R * hat(state->W) * e3;
-    double fdot = -A_1dot.dot(b3) - A.dot(b3_dot);
-    Eigen::Vector3d ej = -fdot / m * b3 - f / m * b3_dot - command->xd_3dot;
+    double f = -A.dot(b3);
 
+    /* Eigen::Vector3d eA = state->a - command->xd_2dot; */
+    Eigen::Vector3d eA = g * e3 - f / m * b3 - command->xd_2dot;
+    Eigen::Vector3d A_1dot = -kX * eV - kV * eA + m * command->xd_3dot;
+
+    double f_dot = -A_1dot.dot(b3) - A.dot(b3_dot);
+
+    Eigen::Vector3d ej = -f_dot / m * b3 - f / m * b3_dot - command->xd_3dot;
     Eigen::Vector3d A_2dot = -kX * eA - kV * ej + m * command->xd_4dot;
-    Eigen::Vector3d b3c_2dot = -A_2dot / nA + (2.0 / pow(nA, 3)) * A.dot(A_1dot) * A_1dot +
-            (pow(A_1dot.norm(), 2) + A.dot(A_2dot) / (pow(nA, 3))) * A - (3.0 / pow(nA, 5)) * (pow(A.dot(A_1dot), 2)) * A;
-    
-    Eigen::Vector3d C_2dot = b3c_2dot.cross(command->b1d) + (b3c.cross(command->b1d_2dot)) + 2 * b3c_1dot.cross(command->b1d_dot);
 
-    Eigen::Vector3d b2c_2dot = C_2dot/nC - 2.0 / (pow(nC, 3)) * C.dot(C_1dot) * C_1dot - (((pow(C_2dot.norm(), 2) + C.dot(C_2dot))) / pow(nC, 3)) * C
-                    + (3.0 / pow(nC, 5)) * (pow(C.dot(C_1dot), 2)) * C;
+    Eigen::Vector3d b3c, b3c_1dot, b3c_2dot;
+    deriv_unit_vector(-A, -A_1dot, -A_2dot, b3c, b3c_1dot, b3c_2dot);
+
+    // double nA = A.norm();
+    // Eigen::Vector3d b3c = -A / A.norm();
+    // Eigen::Vector3d b3c_1dot = -A_1dot / nA + (A.dot(A_1dot) / pow(nA, 3)) * A;
+    // Eigen::Vector3d b3c_2dot = -A_2dot / nA + (2.0 / pow(nA, 3)) * A.dot(A_1dot) * A_1dot +
+    //         (pow(A_1dot.norm(), 2) + A.dot(A_2dot) / (pow(nA, 3))) * A - (3.0 / pow(nA, 5)) * (pow(A.dot(A_1dot), 2)) * A;
     
-    Eigen::Vector3d b1c_2dot = b2c_2dot.cross(b3c) + b2c.cross(b3c_2dot) + 2.0 * b2c_1dot.cross(b3c_1dot);
-    Eigen::Matrix3d Rc_1dot, Rc_2dot;
+
+    Eigen::Vector3d C = -hat(command->b1d) * b3c;
+    Eigen::Vector3d C_1dot = -hat(command->b1d) * b3c_1dot - hat(command->b1d_dot) * b3c;
+    Eigen::Vector3d C_2dot = -hat(command->b1d) * b3c_2dot - hat(command->b1d_2dot) * b3c 
+                             -2.0 * hat(command->b1d_dot) * b3c_1dot;
+    
+    Eigen::Vector3d b2c, b2c_1dot, b2c_2dot;
+    deriv_unit_vector(C, C_1dot, C_2dot, b2c, b2c_1dot, b2c_2dot);
+
+    // double nC = C.norm();
+    // Eigen::Vector3d b2c = C / C.norm();
+    // Eigen::Vector3d b2c_1dot = C / nC - C.dot(C_1dot) / (pow(nC, 3)) * C;
+    // Eigen::Vector3d b2c_2dot = C_2dot / nC - 2.0 / (pow(nC, 3)) * C.dot(C_1dot) * C_1dot - (((pow(C_2dot.norm(), 2) + C.dot(C_2dot))) / pow(nC, 3)) * C
+    //                 + (3.0 / pow(nC, 5)) * (pow(C.dot(C_1dot), 2)) * C;
+    
+    Eigen::Vector3d b1c = hat(b2c) * b3c;
+    Eigen::Vector3d b1c_1dot = hat(b2c) * b3c_1dot + hat(b2c_1dot) * b3c;
+    Eigen::Vector3d b1c_2dot = hat(b2c) * b3c_2dot + hat(b2c_2dot) * b3c + 2.0 * hat(b2c_1dot) * b3c_1dot;
+
+    Eigen::Matrix3d Rc, Rc_1dot, Rc_2dot;
+    Rc << b1c, b2c, b3c;
     Rc_1dot << b1c_1dot, b2c_1dot, b3c_1dot;
     Rc_2dot << b1c_2dot, b2c_2dot, b3c_2dot;
 
-    Eigen::Vector3d omegac = vee(Rc.transpose() * Rc_1dot);
-    Eigen::Vector3d omegac_1dot = vee(Rc.transpose() * Rc_2dot - hat(omegac) * hat(omegac));
+    Eigen::Vector3d Wc = vee(Rc.transpose() * Rc_1dot);
+    Eigen::Vector3d Wc_1dot = vee(Rc.transpose() * Rc_2dot - hat(Wc) * hat(Wc));
 
+    //attitude control part
     eR = 0.5 * vee(Rc.transpose() * state->R - state->R.transpose() * Rc);
-    eW = state->W - state->R.transpose() * Rc * omegac;
+    eW = state->W - state->R.transpose() * Rc * Wc;
 
-    Eigen::Vector3d Mt = -kR * eR - kW * eW + state->W.cross(J * state->W) - 
-                        J * (hat(state->W) * state->R.transpose() * Rc * omegac - state->R.transpose() * Rc * omegac_1dot);
-
-    // control_out
-    f_total = f;
-    M = Mt;
-    orientation = Eigen::Quaterniond(Rc);
+    M = -kR * eR - kW * eW + state->W.cross(J * state->W) - 
+        J * (hat(state->W) * state->R.transpose() * Rc * Wc - state->R.transpose() * Rc * Wc_1dot);
 
     // for save
     fM(0) = f_total;
     fM.block<3,1>(1,0) = M;
     f_motor = fM_to_forces_inv * fM;
+
+    // control_out
+    f_total = f;
+    orientation = Eigen::Quaterniond(Rc);
 }
 
 
