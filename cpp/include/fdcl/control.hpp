@@ -83,7 +83,7 @@ public:
     Eigen::Vector3d b2 = Eigen::Vector3d::Zero(); /**< Direction of the second body axis */
     Eigen::Vector3d b3 = Eigen::Vector3d::Zero(); /**< Direction of the third body axis */
     Eigen::Vector3d b3_dot = Eigen::Vector3d::Zero(); /**< Desired rate of change of b3 axis */
-    Eigen::Quaterniond orientation{0., 0., 0., 0.}; /**< computed orientation*/
+    Eigen::Quaterniond orientation = {0., 0., 0., 0.}; /**< computed orientation*/
 
     Eigen::Matrix4d fM_to_forces_inv; /**< Force to force-moment
         * conversion matrix
